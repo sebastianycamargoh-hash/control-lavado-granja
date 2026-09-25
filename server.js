@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Tus credenciales originales
 const supabaseUrl = 'https://knebgbmufezuxoipbqhcx.supabase.co';
 const supabaseKey = 'sb_publishable_0y3j01fOyL1ttovNGVh22g_SJsIym8u';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -24,7 +25,7 @@ app.get('/api/records', async (req, res) => {
   }
 });
 
-// Guardar registro
+// Guardar registro (tu estructura original)
 app.post('/api/records', async (req, res) => {
   try {
     const { data, error } = await supabase
