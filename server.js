@@ -13,9 +13,10 @@ const supabaseUrl = 'https://knebgbmufezuxoipbqhcx.supabase.co';
 const supabaseKey = 'sb_publishable_0y3j01fOyL1ttovNGVh22g_SJsIym8u';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// 1. Obtener registros
 app.get('/api/records', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('records').select('*').order('id', { ascending: false });
+    const { data, error } = await supabase.from('records').select('*');
     if (error) throw error;
     res.json(data);
   } catch (err) {
@@ -23,35 +24,21 @@ app.get('/api/records', async (req, res) => {
   }
 });
 
+// 2. Guardar registro (tu formato original exacto)
 app.post('/api/records', async (req, res) => {
   try {
-    // Limpiamos y formateamos la fecha para que se guarde perfecto como texto en Supabase
-    let fechaLimpia = req.body.fecha_hora;
-    if (fechaLimpia && fechaLimpia.includes('T')) {
-      fechaLimpia = fechaLimpia.replace('T', ' ');
-    }
-
-    const nuevoRegistro = {
-      fecha_hora: fechaLimpia || new Date().toISOString().slice(0, 19).replace('T', ' '),
-      farm_name: req.body.farm_name || 'Sin nombre',
-      cantidad_lavar: parseInt(req.body.cantidad_lavar, 10) || 0,
-      sucio: parseInt(req.body.sucio, 10) || 0,
-      roto: parseInt(req.body.roto, 10) || 0,
-      recuperado: parseInt(req.body.recuperado, 10) || 0
-    };
-
     const { data, error } = await supabase
       .from('records')
-      .insert([nuevoRegistro]);
+      .insert([req.body]);
 
     if (error) throw error;
     res.json({ success: true, data });
   } catch (err) {
-    console.error('Error detallado al insertar:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// 3. Eliminar registro (lo único nuevo)
 app.delete('/api/records/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -65,10 +52,6 @@ app.delete('/api/records/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
-});
-
-app.listen(port, () => {
-  console.log(`Servidor corriendo en el puerto ${port}`);
 });
 
 app.listen(port, () => {
