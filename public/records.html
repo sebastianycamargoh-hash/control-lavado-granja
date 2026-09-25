@@ -8,10 +8,19 @@
         body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #333; }
         .container { max-width: 650px; margin: 0 auto; }
         
+        .filter-section { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-section label { font-weight: bold; font-size: 14px; }
+        .filter-section input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .btn-clear { background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-clear:hover { background: #5a6268; }
+
         .records-section { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f2f2f2; }
+        
+        /* Fila de totales */
+        tfoot tr { background-color: #e9ecef; font-weight: bold; }
         
         .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 12px; display: inline-block; }
         .btn-delete:hover { background: #c82333; }
@@ -24,6 +33,13 @@
 
     <div class="container">
         <h2>Historial de Registros</h2>
+
+        <!-- Sección de Filtro por Fecha -->
+        <div class="filter-section">
+            <label for="filterDate">Filtrar por fecha:</label>
+            <input type="date" id="filterDate">
+            <button class="btn-clear" onclick="clearFilter()">Ver Todos</button>
+        </div>
 
         <div class="records-section">
             <table>
@@ -43,6 +59,17 @@
                         <td colspan="7">Cargando registros...</td>
                     </tr>
                 </tbody>
+                <!-- Fila de Totales Dinámica -->
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="text-align: right;">TOTALES:</td>
+                        <td id="sumLavar">0</td>
+                        <td id="sumSucio">0</td>
+                        <td id="sumRoto">0</td>
+                        <td id="sumRecuperado">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -50,6 +77,8 @@
     </div>
 
     <script>
+        let allRecords = [];
+
         window.addEventListener('DOMContentLoaded', () => {
             loadRecords();
         });
@@ -58,35 +87,80 @@
             fetch('/api/records')
                 .then(response => response.json())
                 .then(data => {
-                    const tbody = document.getElementById('recordsTableBody');
-                    tbody.innerHTML = '';
-
-                    if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7">No hay registros todavía.</td></tr>';
-                        return;
-                    }
-
-                    data.forEach(row => {
-                        const tr = document.createElement('tr');
-                        const fechaFormateada = row.fecha_hora ? row.fecha_hora.replace('T', ' ') : '';
-                        
-                        tr.innerHTML = `
-                            <td>${fechaFormateada}</td>
-                            <td>${row.farm_name}</td>
-                            <td>${row.cantidad_lavar}</td>
-                            <td>${row.sucio}</td>
-                            <td>${row.roto}</td>
-                            <td>${row.recuperado}</td>
-                            <td>
-                                <a href="/delete-record/${row.id}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este registro?');">🗑️ Borrar</a>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                    allRecords = data;
+                    renderTable(allRecords);
                 })
                 .catch(err => {
                     console.error('Error al cargar la tabla:', err);
                 });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No hay registros para mostrar.</td></tr>';
+                updateTotals(0, 0, 0, 0);
+                return;
+            }
+
+            let totalLavar = 0;
+            let totalSucio = 0;
+            let totalRoto = 0;
+            let totalRecuperado = 0;
+
+            data.forEach(row => {
+                totalLavar += Number(row.cantidad_lavar) || 0;
+                totalSucio += Number(row.sucio) || 0;
+                totalRoto += Number(row.roto) || 0;
+                totalRecuperado += Number(row.recuperado) || 0;
+
+                const tr = document.createElement('tr');
+                const fechaFormateada = row.fecha_hora ? row.fecha_hora.replace('T', ' ') : '';
+                
+                tr.innerHTML = `
+                    <td>${fechaFormateada}</td>
+                    <td>${row.farm_name}</td>
+                    <td>${row.cantidad_lavar}</td>
+                    <td>${row.sucio}</td>
+                    <td>${row.roto}</td>
+                    <td>${row.recuperado}</td>
+                    <td>
+                        <a href="/delete-record/${row.id}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este registro?');">🗑️ Borrar</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateTotals(totalLavar, totalSucio, totalRoto, totalRecuperado);
+        }
+
+        function updateTotals(lavar, sucio, roto, recuperado) {
+            document.getElementById('sumLavar').innerText = lavar;
+            document.getElementById('sumSucio').innerText = sucio;
+            document.getElementById('sumRoto').innerText = roto;
+            document.getElementById('sumRecuperado').innerText = recuperado;
+        }
+
+        // Evento para filtrar cuando el usuario selecciona una fecha
+        document.getElementById('filterDate').addEventListener('change', function() {
+            const selectedDate = this.value; // Formato YYYY-MM-DD
+            if (!selectedDate) {
+                renderTable(allRecords);
+                return;
+            }
+
+            const filteredData = allRecords.filter(row => {
+                return row.fecha_hora && row.fecha_hora.startsWith(selectedDate);
+            });
+
+            renderTable(filteredData);
+        });
+
+        function clearFilter() {
+            document.getElementById('filterDate').value = '';
+            renderTable(allRecords);
         }
     </script>
 
