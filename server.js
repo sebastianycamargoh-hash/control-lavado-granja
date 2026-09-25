@@ -9,10 +9,10 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos (tu HTML, CSS, JS del frontend)
+// Servir archivos estáticos de la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuración de Supabase (usando tus variables de entorno o credenciales)
+// Configuración segura de Supabase usando las variables de entorno de Render
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -72,6 +72,11 @@ app.delete('/api/records/:id', async (req, res) => {
     console.error('Error al eliminar:', err.message);
     res.status(500).json({ error: 'No se pudo eliminar el registro' });
   }
+});
+
+// Iniciar el servidor
+app.listen(port, () => {
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
 
 // Iniciar el servidor
