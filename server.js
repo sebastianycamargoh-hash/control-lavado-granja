@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Tus credenciales originales
+// Tus credenciales exactas
 const supabaseUrl = 'https://knebgbmufezuxoipbqhcx.supabase.co';
 const supabaseKey = 'sb_publishable_0y3j01fOyL1ttovNGVh22g_SJsIym8u';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -21,11 +21,12 @@ app.get('/api/records', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
+    console.error('Error al obtener:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 2. Guardar registro (Estructura original exacta)
+// 2. Guardar registro
 app.post('/api/records', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -35,7 +36,7 @@ app.post('/api/records', async (req, res) => {
     if (error) throw error;
     res.json({ success: true, data });
   } catch (err) {
-    console.error('Error al guardar:', err.message);
+    console.error('Error al guardar en Supabase:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -52,6 +53,7 @@ app.delete('/api/records/:id', async (req, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (err) {
+    console.error('Error al eliminar:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
