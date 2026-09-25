@@ -8,10 +8,11 @@
         body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #333; }
         .container { max-width: 650px; margin: 0 auto; }
         
-        .filter-section { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-section label { font-weight: bold; font-size: 14px; }
+        .filter-section { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-section label { font-weight: bold; font-size: 14px; min-width: 50px; }
         .filter-section input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        .btn-clear { background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-clear { background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%; }
         .btn-clear:hover { background: #5a6268; }
 
         .records-section { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; margin-bottom: 20px; }
@@ -34,11 +35,19 @@
     <div class="container">
         <h2>Historial de Registros</h2>
 
-        <!-- Sección de Filtro por Fecha -->
+        <!-- Sección de Filtros Avanzados (Fecha y Horas) -->
         <div class="filter-section">
-            <label for="filterDate">Filtrar por fecha:</label>
-            <input type="date" id="filterDate">
-            <button class="btn-clear" onclick="clearFilter()">Ver Todos</button>
+            <div class="filter-row">
+                <label for="filterDate">Fecha:</label>
+                <input type="date" id="filterDate" style="flex: 1;">
+            </div>
+            <div class="filter-row">
+                <label for="filterHoraInicio">Desde:</label>
+                <input type="time" id="filterHoraInicio" style="flex: 1;" value="06:00">
+                <label for="filterHoraFin">Hasta:</label>
+                <input type="time" id="filterHoraFin" style="flex: 1;" value="14:00">
+            </div>
+            <button class="btn-clear" onclick="clearFilter()">Ver Todos / Limpiar Filtros</button>
         </div>
 
         <div class="records-section">
@@ -88,7 +97,7 @@
                 .then(response => response.json())
                 .then(data => {
                     allRecords = data;
-                    renderTable(allRecords);
+                    applyFilters(); // Aplica los filtros por defecto al cargar
                 })
                 .catch(err => {
                     console.error('Error al cargar la tabla:', err);
@@ -100,7 +109,7 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">No hay registros para mostrar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">No hay registros para este filtro.</td></tr>';
                 updateTotals(0, 0, 0, 0);
                 return;
             }
@@ -143,23 +152,49 @@
             document.getElementById('sumRecuperado').innerText = recuperado;
         }
 
-        // Evento para filtrar cuando el usuario selecciona una fecha
-        document.getElementById('filterDate').addEventListener('change', function() {
-            const selectedDate = this.value; // Formato YYYY-MM-DD
-            if (!selectedDate) {
-                renderTable(allRecords);
-                return;
-            }
+        function applyFilters() {
+            const selectedDate = document.getElementById('filterDate').value; // Formato YYYY-MM-DD
+            const horaInicio = document.getElementById('filterHoraInicio').value; // Formato HH:MM
+            const horaFin = document.getElementById('filterHoraFin').value; // Formato HH:MM
 
             const filteredData = allRecords.filter(row => {
-                return row.fecha_hora && row.fecha_hora.startsWith(selectedDate);
+                if (!row.fecha_hora) return false;
+
+                // row.fecha_hora viene típicamente como "YYYY-MM-DDTHH:MM" o similar
+                const parts = row.fecha_hora.split('T');
+                const rowDate = parts[0];
+                const rowTime = parts[1] ? parts[1].substring(0, 5) : ''; // "HH:MM"
+
+                // Validar filtro de fecha (si está seleccionada)
+                if (selectedDate && rowDate !== selectedDate) {
+                    return false;
+                }
+
+                // Validar filtro de hora de inicio (si está escrita)
+                if (horaInicio && rowTime < horaInicio) {
+                    return false;
+                }
+
+                // Validar filtro de hora de fin (si está escrita)
+                if (horaFin && rowTime > horaFin) {
+                    return false;
+                }
+
+                return true;
             });
 
             renderTable(filteredData);
-        });
+        }
+
+        // Eventos para que se filtre automáticamente al cambiar cualquier campo
+        document.getElementById('filterDate').addEventListener('change', applyFilters);
+        document.getElementById('filterHoraInicio').addEventListener('input', applyFilters);
+        document.getElementById('filterHoraFin').addEventListener('input', applyFilters);
 
         function clearFilter() {
             document.getElementById('filterDate').value = '';
+            document.getElementById('filterHoraInicio').value = '';
+            document.getElementById('filterHoraFin').value = '';
             renderTable(allRecords);
         }
     </script>
