@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Registros</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #333; }
+        .container { max-width: 650px; margin: 0 auto; }
+        
+        .records-section { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        
+        .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 12px; display: inline-block; }
+        .btn-delete:hover { background: #c82333; }
+        
+        .btn-back { display: block; background: #6c757d; color: white; text-align: center; padding: 14px; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-back:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Historial de Registros</h2>
+
+        <div class="records-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha/Hora</th>
+                        <th>Granja</th>
+                        <th>Lavar</th>
+                        <th>Sucio</th>
+                        <th>Roto</th>
+                        <th>Recup.</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTableBody">
+                    <tr>
+                        <td colspan="7">Cargando registros...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/" class="btn-back">⬅️ Volver al Formulario</a>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecords();
+        });
+
+        function loadRecords() {
+            fetch('/api/records')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('recordsTableBody');
+                    tbody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7">No hay registros todavía.</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        const fechaFormateada = row.fecha_hora ? row.fecha_hora.replace('T', ' ') : '';
+                        
+                        tr.innerHTML = `
+                            <td>${fechaFormateada}</td>
+                            <td>${row.farm_name}</td>
+                            <td>${row.cantidad_lavar}</td>
+                            <td>${row.sucio}</td>
+                            <td>${row.roto}</td>
+                            <td>${row.recuperado}</td>
+                            <td>
+                                <a href="/delete-record/${row.id}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este registro?');">🗑️ Borrar</a>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    console.error('Error al cargar la tabla:', err);
+                });
+        }
+    </script>
+
+</body>
+</html>
