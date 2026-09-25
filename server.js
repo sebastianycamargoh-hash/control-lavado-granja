@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Tus credenciales originales
 const supabaseUrl = 'https://knebgbmufezuxoipbqhcx.supabase.co';
 const supabaseKey = 'sb_publishable_0y3j01fOyL1ttovNGVh22g_SJsIym8u';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -24,7 +25,7 @@ app.get('/api/records', async (req, res) => {
   }
 });
 
-// 2. Guardar registro (tu formato original exacto)
+// 2. Guardar registro (Estructura original exacta)
 app.post('/api/records', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -34,11 +35,12 @@ app.post('/api/records', async (req, res) => {
     if (error) throw error;
     res.json({ success: true, data });
   } catch (err) {
+    console.error('Error al guardar:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 3. Eliminar registro (lo único nuevo)
+// 3. Eliminar registro
 app.delete('/api/records/:id', async (req, res) => {
   try {
     const { id } = req.params;
