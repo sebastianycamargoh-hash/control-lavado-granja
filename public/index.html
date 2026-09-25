@@ -3,81 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Lavado - Granja</title>
+    <title>Nuevo Registro - Granja</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; }
-        form { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        label { display: block; margin-top: 12px; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background: #28a745; color: white; padding: 14px; border: none; border-radius: 6px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 3px 5px rgba(40,167,69,0.3); }
-        button:hover { background: #218838; }
-        .error { color: #dc3545; font-size: 14px; margin-bottom: 10px; display: none; font-weight: bold; }
-        
-        .btn-view { display: block; background: #17a2b8; color: white; text-align: center; padding: 14px; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-view:hover { background: #138496; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        h1 { color: #2c3e50; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #27ae60; color: white; border: none; padding: 10px 15px; margin-top: 15px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+        button:hover { background-color: #219653; }
+        .link-ver { display: block; margin-top: 15px; text-align: center; color: #2980b9; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Control de Lavado - Granja</h2>
+    <h1>Control de Lavado - Granja</h1>
 
-        <form id="lavadoForm" action="/save-record" method="POST">
-            <label for="fecha_hora">Fecha y Hora:</label>
-            <input type="datetime-local" id="fecha_hora" name="fecha_hora" required>
+    <form id="registroForm">
+        <h2>Nuevo Registro</h2>
+        <label for="fecha_hora">Fecha y Hora:</label>
+        <input type="datetime-local" id="fecha_hora" name="fecha_hora" required>
 
-            <label for="farm_name">Nombre de la Granja:</label>
-            <input type="text" id="farm_name" name="farm_name" required placeholder="Ej. Lote El Trébol">
+        <label for="farm_name">Nombre de la Granja:</label>
+        <input type="text" id="farm_name" name="farm_name" placeholder="Ej. Granja San José" required>
 
-            <label for="cantidad_lavar">Cantidad a lavar:</label>
-            <input type="number" id="cantidad_lavar" name="cantidad_lavar" required min="0" placeholder="Ej. 100">
+        <label for="cantidad_lavar">Cantidad a Lavar:</label>
+        <input type="number" id="cantidad_lavar" name="cantidad_lavar" required>
 
-            <label for="sucio">Sucio:</label>
-            <input type="number" id="sucio" name="sucio" required min="0" placeholder="0">
+        <label for="sucio">Sucio:</label>
+        <input type="number" id="sucio" name="sucio" required>
 
-            <label for="roto">Roto:</label>
-            <input type="number" id="roto" name="roto" required min="0" placeholder="0">
+        <label for="roto">Roto:</label>
+        <input type="number" id="roto" name="roto" required>
 
-            <label for="recuperado">Recuperado:</label>
-            <input type="number" id="recuperado" name="recuperado" required min="0" placeholder="0">
+        <label for="recuperado">Recuperado:</label>
+        <input type="number" id="recuperado" name="recuperado" required>
 
-            <div id="errorMsg" class="error">⚠️ La suma de Sucio + Roto + Recuperado debe ser igual a la Cantidad a lavar.</div>
+        <button type="submit">Guardar Registro</button>
+    </form>
 
-            <button type="submit">Guardar Registro</button>
-        </form>
-
-        <a href="/records" class="btn-view">📋 Ver Registros Ingresados</a>
-    </div>
+    <!-- Enlace para ir a la pantalla de registros (ajusta el nombre si tu archivo se llama diferente, ej. records.html) -->
+    <a href="records.html" class="link-ver">Ver Historial de Registros &rarr;</a>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            
-            document.getElementById('fecha_hora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        });
+        document.getElementById('registroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        const form = document.getElementById('lavadoForm');
-        form.addEventListener('submit', function(e) {
-            const lavar = parseInt(document.getElementById('cantidad_lavar').value) || 0;
-            const sucio = parseInt(document.getElementById('sucio').value) || 0;
-            const roto = parseInt(document.getElementById('roto').value) || 0;
-            const recuperado = parseInt(document.getElementById('recuperado').value) || 0;
-            const errorMsg = document.getElementById('errorMsg');
+            const formData = {
+                fecha_hora: document.getElementById('fecha_hora').value,
+                farm_name: document.getElementById('farm_name').value,
+                cantidad_lavar: document.getElementById('cantidad_lavar').value,
+                sucio: document.getElementById('sucio').value,
+                roto: document.getElementById('roto').value,
+                recuperado: document.getElementById('recuperado').value
+            };
 
-            if ((sucio + roto + recuperado) !== lavar) {
-                e.preventDefault();
-                errorMsg.style.display = 'block';
-            } else {
-                errorMsg.style.display = 'none';
+            try {
+                const response = await fetch('/api/records', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const resultado = await response.json();
+                if (resultado.success) {
+                    alert('¡Guardado con éxito!');
+                    document.getElementById('registroForm').reset();
+                } else {
+                    alert('Error al guardar el registro.');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('No se pudo conectar con el servidor.');
             }
         });
     </script>
-
 </body>
 </html>
