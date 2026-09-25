@@ -12,9 +12,9 @@ app.use(express.urlencoded({ extended: true }));
 // Servir archivos estáticos de la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuración segura de Supabase usando las variables de entorno de Render
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+// Configuración directa de Supabase con tus credenciales
+const supabaseUrl = 'https://knebgbmufezuxoipbqhcx.supabase.co';
+const supabaseKey = 'sb_publishable_0y3j01fOyL1ttovNGVh22g_SJsIym8u';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ==========================================
@@ -27,7 +27,7 @@ app.get('/api/records', async (req, res) => {
     const { data, error } = await supabase
       .from('records')
       .select('*')
-      .order('id', { ascending: false }); // Los más recientes primero
+      .order('id', { ascending: false });
 
     if (error) throw error;
     res.json(data);
@@ -72,11 +72,6 @@ app.delete('/api/records/:id', async (req, res) => {
     console.error('Error al eliminar:', err.message);
     res.status(500).json({ error: 'No se pudo eliminar el registro' });
   }
-});
-
-// Iniciar el servidor
-app.listen(port, () => {
-  console.log(`Servidor corriendo en el puerto ${port}`);
 });
 
 // Iniciar el servidor
