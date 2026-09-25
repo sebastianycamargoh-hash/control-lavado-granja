@@ -69,7 +69,7 @@
                     alert('¡Guardado con éxito!');
                     document.getElementById('registroForm').reset();
                 } else {
-                    alert('Error al guardar el registro.');
+                    alert('Error del servidor: ' + (resultado.error || 'Desconocido'));
                 }
             } catch (err) {
                 console.error('Error:', err);
